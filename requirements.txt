@@ -1,0 +1,10 @@
+mujoco>=3.1.0
+gymnasium>=0.29.1
+stable-baselines3[extra]>=2.3.0
+huggingface-sb3>=3.0
+huggingface_hub>=0.23.0
+imageio[ffmpeg]>=2.34.0
+moviepy>=1.0.3
+tensorboard>=2.16.0
+gradio>=4.0.0
+

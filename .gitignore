@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+
+# Training logs & checkpoints
+logs/
+tensorboard_logs/
+checkpoints/
+!checkpoints/ppo_world_robot.zip
+!checkpoints/best_model/
+!checkpoints/best_model/best_model.zip
+!videos/
+videos/hugging_token
+*token*
+
+# Reference repo
+mujoco_ref/
+
+
+

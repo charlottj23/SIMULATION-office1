@@ -1,0 +1,149 @@
+<mujoco model="office_tidy_mobile_manipulator">
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
+
+  <visual>
+    <headlight diffuse="0.75 0.75 0.75" ambient="0.40 0.40 0.42" specular="0.35 0.35 0.35"/>
+    <rgba haze="0.15 0.18 0.22 1"/>
+    <global azimuth="135" elevation="-28" offwidth="1280" offheight="720"/>
+    <quality shadowsize="4096"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.38 0.48 0.62" rgb2="0.10 0.12 0.16" width="512" height="3072"/>
+    <texture type="2d" name="office_tile" builtin="checker" mark="edge"
+             rgb1="0.78 0.80 0.83" rgb2="0.72 0.74 0.78" markrgb="0.62 0.64 0.68" width="512" height="512"/>
+    <material name="floor_mat" texture="office_tile" texuniform="true" texrepeat="4 4" reflectance="0.08"/>
+    <material name="desk_wood" rgba="0.76 0.56 0.36 1" shininess="0.3" specular="0.2"/>
+    <material name="dark_metal" rgba="0.22 0.24 0.27 1" shininess="0.6" specular="0.5"/>
+    <material name="robot_white" rgba="0.94 0.95 0.97 1" shininess="0.7" specular="0.6"/>
+    <material name="arm_blue" rgba="0.18 0.48 0.82 1" shininess="0.6" specular="0.5"/>
+    <material name="arm_orange" rgba="0.95 0.52 0.15 1" shininess="0.6" specular="0.5"/>
+    <material name="gripper_rubber" rgba="0.15 0.16 0.18 1" shininess="0.1"/>
+    <material name="bin_green" rgba="0.15 0.62 0.32 0.88" shininess="0.4"/>
+  </asset>
+
+  <worldbody>
+    <light name="light1" pos="-1.0 -1.5 3.5" dir="0.2 0.3 -1" directional="true" diffuse="0.80 0.80 0.82" castshadow="true"/>
+    <light name="light2" pos="1.5 1.5 3.0" dir="-0.3 -0.3 -1" directional="true" diffuse="0.45 0.45 0.48" castshadow="false"/>
+
+    <!-- Office Tile Floor -->
+    <geom name="office_floor" type="plane" size="2.5 2.5 0.1" material="floor_mat" friction="1.0 0.005 0.0001"/>
+
+    <!-- Background Office Desk & Monitor (for context) -->
+    <body name="office_desk" pos="-0.90 0.90 0">
+      <geom name="d_top" type="box" pos="0 0 0.72" size="0.60 0.36 0.02" material="desk_wood"/>
+      <geom name="d_leg1" type="cylinder" pos="-0.54 -0.30 0.35" size="0.025 0.35" material="dark_metal"/>
+      <geom name="d_leg2" type="cylinder" pos="0.54 -0.30 0.35" size="0.025 0.35" material="dark_metal"/>
+      <geom name="d_leg3" type="cylinder" pos="-0.54 0.30 0.35" size="0.025 0.35" material="dark_metal"/>
+      <geom name="d_leg4" type="cylinder" pos="0.54 0.30 0.35" size="0.025 0.35" material="dark_metal"/>
+      <geom name="d_mon" type="box" pos="0 0.15 0.90" size="0.26 0.015 0.14" rgba="0.12 0.14 0.18 1"/>
+    </body>
+
+    <!-- ========================================================================= -->
+    <!-- Recycling / Trash Bin (Open-Top Container at x=0.0, y=-0.52)               -->
+    <!-- ========================================================================= -->
+    <body name="trash_bin" pos="0.0 -0.52 0">
+      <geom name="bin_bottom" type="box" pos="0 0 0.01" size="0.16 0.16 0.01" material="bin_green"/>
+      <geom name="bin_wall_n" type="box" pos="0 0.15 0.11" size="0.16 0.012 0.10" material="bin_green"/>
+      <geom name="bin_wall_s" type="box" pos="0 -0.15 0.11" size="0.16 0.012 0.10" material="bin_green"/>
+      <geom name="bin_wall_e" type="box" pos="0.15 0 0.11" size="0.012 0.15 0.10" material="bin_green"/>
+      <geom name="bin_wall_w" type="box" pos="-0.15 0 0.11" size="0.012 0.15 0.10" material="bin_green"/>
+      <site name="bin_drop_site" pos="0 0 0.28" size="0.03" rgba="0.2 0.95 0.3 0.5"/>
+    </body>
+
+    <!-- ========================================================================= -->
+    <!-- Pickable Office Trash Objects (3D Rigid Bodies with High-Friction Contact) -->
+    <!-- ========================================================================= -->
+    <!-- 1. Red Soda Can (Radius = 0.030m, Half-height = 0.055m) -->
+    <body name="soda_can" pos="0.46 0.22 0.06">
+      <freejoint name="can_free"/>
+      <geom name="can_geom" type="cylinder" size="0.030 0.055" rgba="0.92 0.18 0.18 1"
+            mass="0.08" friction="1.8 0.02 0.002" solref="0.008 1" solimp="0.95 0.99 0.001"/>
+      <site name="can_site" pos="0 0 0" size="0.01"/>
+    </body>
+
+    <!-- 2. Blue Plastic Cube / Block -->
+    <body name="plastic_block" pos="0.32 -0.25 0.04">
+      <freejoint name="block_free"/>
+      <geom name="block_geom" type="box" size="0.032 0.032 0.038" rgba="0.20 0.55 0.95 1"
+            mass="0.08" friction="1.8 0.02 0.002" solref="0.008 1" solimp="0.95 0.99 0.001"/>
+      <site name="block_site" pos="0 0 0" size="0.01"/>
+    </body>
+
+    <!-- 3. Yellow Crumpled Paper / Coffee Cup -->
+    <body name="coffee_cup" pos="-0.38 0.30 0.05">
+      <freejoint name="cup_free"/>
+      <geom name="cup_geom" type="cylinder" size="0.031 0.050" rgba="0.95 0.78 0.15 1"
+            mass="0.07" friction="1.8 0.02 0.002" solref="0.008 1" solimp="0.95 0.99 0.001"/>
+      <site name="cup_site" pos="0 0 0" size="0.01"/>
+    </body>
+
+    <!-- ========================================================================= -->
+    <!-- Mobile Manipulator Tidy Robot (Holonomic Base + 4-DoF Arm + Parallel Jaw) -->
+    <!-- ========================================================================= -->
+    <body name="tidy_robot_base" pos="0 0 0.06">
+      <joint name="base_x" type="slide" axis="1 0 0" range="-1.5 1.5" damping="35"/>
+      <joint name="base_y" type="slide" axis="0 1 0" range="-1.5 1.5" damping="35"/>
+      <geom name="base_disc" type="cylinder" size="0.18 0.045" material="robot_white" mass="6.0"/>
+      <geom name="base_bumper" type="cylinder" pos="0 0 -0.01" size="0.185 0.02" material="dark_metal" mass="1.0"/>
+
+      <!-- Arm Turret (Waist Yaw Rotation) -->
+      <body name="arm_turret" pos="0 0 0.055">
+        <joint name="arm_yaw" type="hinge" axis="0 0 1" range="-3.14159 3.14159" damping="8.0"/>
+        <geom name="turret_geom" type="cylinder" size="0.065 0.035" material="dark_metal" mass="0.8"/>
+
+        <!-- Shoulder Link -->
+        <body name="upper_arm" pos="0 0 0.04">
+          <joint name="shoulder_pitch" type="hinge" axis="0 1 0" range="-1.5 1.5" damping="6.0"/>
+          <geom name="upper_arm_geom" type="capsule" fromto="0 0 0 0 0 0.28" size="0.028" material="arm_blue" mass="0.5"/>
+
+          <!-- Forearm Link -->
+          <body name="forearm" pos="0 0 0.28">
+            <joint name="elbow_pitch" type="hinge" axis="0 1 0" range="-2.2 2.2" damping="4.0"/>
+            <geom name="forearm_geom" type="capsule" fromto="0 0 0 0.26 0 0" size="0.024" material="arm_orange" mass="0.4"/>
+
+            <!-- Wrist Pitch & Parallel-Jaw Gripper -->
+            <body name="gripper_base" pos="0.26 0 0">
+              <joint name="wrist_pitch" type="hinge" axis="0 1 0" range="-1.8 1.8" damping="2.0"/>
+              <geom name="wrist_mount" type="box" pos="0.02 0 0" size="0.02 0.065 0.022" material="dark_metal" mass="0.2"/>
+              <site name="grasp_center" pos="0.075 0 0" size="0.015" rgba="0.1 0.9 0.2 0.6"/>
+
+              <!-- Left Finger -->
+              <body name="left_finger" pos="0.065 0.042 0">
+                <joint name="left_finger_slide" type="slide" axis="0 1 0" range="-0.035 0.025" damping="2.5"/>
+                <geom name="left_pad" type="box" size="0.038 0.008 0.028" material="gripper_rubber"
+                      mass="0.05" friction="2.2 0.05 0.01" solref="0.006 1" solimp="0.97 0.995 0.0005"/>
+              </body>
+
+              <!-- Right Finger -->
+              <body name="right_finger" pos="0.065 -0.042 0">
+                <joint name="right_finger_slide" type="slide" axis="0 -1 0" range="-0.035 0.025" damping="2.5"/>
+                <geom name="right_pad" type="box" size="0.038 0.008 0.028" material="gripper_rubber"
+                      mass="0.05" friction="2.2 0.05 0.01" solref="0.006 1" solimp="0.97 0.995 0.0005"/>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <equality>
+    <!-- Synchronize left and right gripper fingers -->
+    <joint joint1="left_finger_slide" joint2="right_finger_slide" polycoef="0 1 0 0 0"/>
+  </equality>
+
+  <actuator>
+    <!-- Mobile Base Position Controllers -->
+    <position name="act_base_x" joint="base_x" kp="220" ctrlrange="-1.4 1.4"/>
+    <position name="act_base_y" joint="base_y" kp="220" ctrlrange="-1.4 1.4"/>
+    <!-- 4-DoF Arm Joint Position Controllers -->
+    <position name="act_yaw" joint="arm_yaw" kp="85" ctrlrange="-3.14159 3.14159"/>
+    <position name="act_shoulder" joint="shoulder_pitch" kp="95" ctrlrange="-1.4 1.4"/>
+    <position name="act_elbow" joint="elbow_pitch" kp="75" ctrlrange="-2.0 2.0"/>
+    <position name="act_wrist" joint="wrist_pitch" kp="45" ctrlrange="-1.6 1.6"/>
+    <!-- Gripper Force/Position Controller (-0.032 = Tight Grasp, +0.020 = Wide Open) -->
+    <position name="act_gripper" joint="left_finger_slide" kp="120" ctrlrange="-0.035 0.025"/>
+  </actuator>
+</mujoco>
